@@ -5,15 +5,29 @@ from django.db import models
 from django.db.models import Q
 
 
-class Interface:
-    """Name of the operator GUI and coresponding PLC address"""
+class Interface(models.Model):
+    """
+    Name of the operator GUI and coresponding PLC address
+    """
     name = models.CharField(max_length=255)
     plc_address = models.CharField(max_length=100)
     plc_port = models.IntegerField()
 
 
-class Order:
-    """Prodiction order"""
+class Status(models.Model):
+    """
+    Status of the order
+    """
+    status = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        verbose_name_plural = 'Statuses'
+
+
+class Order(models.Model):
+    """
+    Prodiction order
+    """
     number = models.IntegerField()
     requested_amount = models.IntegerField()
     completed_amount = models.IntegerField()

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid" style='color:darkslategray; font-size:36px'>
+    <div class="row" style='overflow:auto'>
+        <div class='col-sm' style:'horizontal-align:middle; width:70vw'>
+            <form id='form' method='POST'> {% csrf_token %}
+                
+                    {% for field in form %}
+                        <div class='d-flex justify-content-center'>{{ field.label }}</div>
+                        <div class='d-flex justify-content-center'>{{ field }}</div><br>
+                    {% endfor %}
+                <div class='d-flex justify-content-center'>
+                    <input value='Start' name='button' type='submit' class='btn btn-success btn-block' style='font-size:32px'>
+                </div>
+                <div class='d-flex justify-content-center'>
+                    <input value='Stop' name='button' type='submit' class='btn btn-danger btn-block' style='font-size:32px'>
+                </div>
+            </form>
+        </div>
+        <div class='col-sm'>
+            <div class='d-flex justify-content-center'>
+                Status:
+            </div><br>
+            <div class='d-flex justify-content-center'>
+                Praca:&nbsp
+                <div style='color:green'>Start</div>
+                <div style='color:red'>Stop</div>
+            </div>
+            <div class='d-flex justify-content-center'>
+                Ilość do zrobienia: ilość
+            </div>
+            <div class='d-flex justify-content-center'>
+                Aktualne zlecenie: numer
+            </div>
+        </div>
+    </div><br>
+    <div class='d-flex justify-content-center'>
+        Log ramek:
+    </div>
+    <div class='container-fluid' style='overflow:auto; height:25vh; text-align:center'>
+        <table class='table table-striped table-bordered table-hover table-sm' style='font-size:18px'>
+            <thead style='background:lavender'>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='col'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='row'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='row'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='row'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='row'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='row'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='row'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='row'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='row'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+// websocket scripts
+
+</script>
+{% endblock %}
