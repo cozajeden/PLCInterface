@@ -11,6 +11,8 @@ class PLCInterfaceConsumer(AsyncConsumer):
         await self.send({
             "type": "websocket.accept"
         })
+        interface_name = self.scope['url_route']['kwargs']['interface_name']
+        print(self.scope['user'])
         await asyncio.sleep(10)
         await self.send({
             "type": "websocket.close",

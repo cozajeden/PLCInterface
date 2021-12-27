@@ -27,6 +27,7 @@ class InterfaceView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['form'] = self.form_class()
         context['table_fields'] = [
-            'godzina', 'typ', 'adres', 'funkcja', 'dane', 'crc'
+            'Timestamp', 'Transaction id', 'Protocol id', 'Length',
+            'Unit id', 'Function', 'Starting address', 'Quantity',
         ]
         return context

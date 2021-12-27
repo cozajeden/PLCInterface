@@ -37,7 +37,15 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-# class Command:
-#     """Command to be sent to the PLC"""
-#     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-#     timestamp = models.DateTimeField(auto_now_add=True)
+class Command(models.Model):
+    """
+    Predefinied command to be sent to the PLC
+    """
+    interface = models.ForeignKey(Interface, on_delete=models.CASCADE)
+    command = models.CharField(max_length=255)
+    protocol_id = models.CharField(default='0000', max_length=4)
+    length = models.CharField(default='0006', max_length=4)
+    unit_id = models.CharField(max_length=2)
+    function = models.CharField(max_length=2)
+    starting_address = models.CharField(max_length=4)
+    data = models.CharField(max_length=255, null=True, blank=True)
