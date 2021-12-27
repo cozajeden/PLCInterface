@@ -104,6 +104,18 @@
 console.log(window.location)
 
 var loc = window.location
+var formData = $('#form')
+// var button = $('input[name=button]')
+
+
+var button
+$('.btn').click(function(){
+    button = $(this).val()
+})
+
+
+
+
 var wsStart = 'ws://'
 if (loc.protocol == 'https:') {
     wsStart = 'wss://'
@@ -116,6 +128,10 @@ socket.onmessage = function(e){
 }
 socket.onopen = function(e){
     console.log("open", e)
+    formData.submit(function(event){
+        event.preventDefault()
+        console.log(button)
+    })
 }
 socket.onerror = function(e){
     console.log("error", e)
