@@ -11,6 +11,10 @@ class PLCInterfaceConsumer(AsyncConsumer):
         await self.send({
             "type": "websocket.accept"
         })
+        await asyncio.sleep(10)
+        await self.send({
+            "type": "websocket.close",
+        })
 
     async def websocket_receive(self, event):
         print("received", event)

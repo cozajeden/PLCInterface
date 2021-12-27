@@ -19,11 +19,11 @@ from interfaces.consumers import PLCInterfaceConsumer
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'channel.settings')
 
 application = ProtocolTypeRouter({
-    'wenbsocket': AllowedHostsOriginValidator(
+    'websocket': AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter(
                 [
-                    path('interfaces/<str:interface_name>/', PLCInterfaceConsumer),
+                    path('interfaces/<str:interface_name>/', PLCInterfaceConsumer()),
                 ]
             )
         )
