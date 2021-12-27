@@ -3,7 +3,7 @@
 from django.db import migrations
 
 
-def create_initial_interface(apps, schema_editor):
+def create_initial_statuses(apps, schema_editor):
     Status = apps.get_model('interfaces', 'Status')
     for status in ['requested', 'finished', 'stopped']:
         Status.objects.create(status=status)
