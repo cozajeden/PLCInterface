@@ -16,9 +16,16 @@ class InterfaceView(TemplateView):
         """
         Method for processing POST request
         """
-        print(args)
         print(kwargs)
-        print(request.POST)
+        form = forms.OrderForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.interface = models.Interface.objects.get(name=kwargs['interface_name'])
+            order.status = models.Status.objects.get(status='requested')
+            order.completed_amount = 0
+            order.save()
+            form = forms.OrderForm()
+            return render(request, self.template_name, {'form': form})
 
     def get_context_data(self, **kwargs):
         """

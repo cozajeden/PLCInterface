@@ -1,9 +1,17 @@
 from django import forms
 
+from . import models
 
-class OrderForm(forms.Form):
+
+class OrderForm(forms.ModelForm):
     """
     Form for ordering
     """
-    number = forms.IntegerField(label='Numer zamówienia', min_value=1)
-    amount = forms.IntegerField(label='Ilość sztuk do wyprodukowania', min_value=1)
+
+    class Meta:
+        model = models.Order
+        fields = ['number', 'requested_amount']
+        labels = {
+            'number': 'Numer zamówienia',
+            'requested_amount': 'Ilość sztuk do wyprodukowania',
+        }

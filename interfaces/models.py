@@ -32,7 +32,7 @@ class Order(models.Model):
     requested_amount = models.IntegerField()
     completed_amount = models.IntegerField()
     interface = models.ForeignKey(Interface, on_delete=models.CASCADE)
-    status = models.CharField(max_length=255)
+    status = models.ForeignKey(Status, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
