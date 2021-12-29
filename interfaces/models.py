@@ -46,12 +46,12 @@ class OrderManager(models.Manager):
         for order in requested_orders:
             order.status = Status.objects.get(status='stopped')
             order.save()
-        order, created = super().get_or_create(
+        order, created = super().update_or_create(
             interface=Interface.objects.get(name=interface_name),
-            order_number=order_number,
+            number=order_number,
             defaults = {
                 'status': Status.objects.get(status='requested'),
-                'request_amount': requested_amount
+                'requested_amount': requested_amount
             }
         )
         if not created and order.completed_amount >= requested_amount:
@@ -65,16 +65,19 @@ class OrderManager(models.Manager):
         Cancel order in the database
         """
         interface = Interface.objects.get(name=interface_name)
-        order = super().get_queryset().get(
-            interface=interface,
-            status = Status.objects.get(status='requested')
-        )
-        if order.complete_amount >= order.requested_amount:
+        try:
+            order = super().get_queryset().get(
+                interface=interface,
+                status = Status.objects.get(status='requested')
+            )
+        except Order.DoesNotExist:
+            return True
+        if order.completed_amount >= order.requested_amount:
             order.status = Status.objects.get(status='finished')
         else:
             order.status = Status.objects.get(status='stopped')
         order.save()
-        return order
+        return True
 
     def update_order(self, interface_name: str, completed_amount: int):
         """
@@ -85,7 +88,7 @@ class OrderManager(models.Manager):
             interface=interface,
             status = Status.objects.get(status='requested')
         )
-        
+
         order.completed_amount = completed_amount
         if completed_amount >= order.requested_amount:
             order.status = Status.objects.get(status='finished')
@@ -115,7 +118,7 @@ class CommandManager(models.Manager):
     """
     Manager for Command model
     """
-    def get_command_as_bytes(self, interface: str, command: str) -> bytes:
+    def get_command_as_bytes(self, interface: str, command: str) -> bytearray:
         """
         Get command as bytes
         """
@@ -125,7 +128,7 @@ class CommandManager(models.Manager):
             'protocol_id', 'length', 'unit_id', 'function', 'starting_address', 'data'
         ]
         data = ''.join([command.__getattribute__(field) for field in fields])
-        return bytes.fromhex(data)
+        return bytearray.fromhex(data)
 
 
 class Command(models.Model):

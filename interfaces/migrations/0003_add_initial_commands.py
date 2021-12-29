@@ -5,19 +5,20 @@ from django.db import migrations
 
 def create_initial_command_list(apps, schema_editor):
     commands = [
-        ['read_amount', '01', '03', '0000', '0001'],
-        ['write_amount', '01', '10', '0000', '000102'],
-        ['read_status', '01', '01', '0010', '0001'],
-        ['start', '01', '05', '0010', 'FF00'],
-        ['stop', '01', '05', '0010', '0000'],
+        ['read_amount', '0006', '01', '03', '0000', '0001'],
+        ['write_amount', '0009', '01', '10', '0000', '000102'],
+        ['read_status', '0006', '01', '01', '0010', '0001'],
+        ['start', '0006', '01', '05', '0010', 'FF00'],
+        ['stop', '0006', '01', '05', '0010', '0000'],
     ]
     Command = apps.get_model('interfaces', 'Command')
     Interface = apps.get_model('interfaces', 'Interface')
     interface1 = Interface.objects.get(name='interface1')
-    for cmd, u_id, fun, s_addr, data in commands:
+    for cmd, u_id, length, fun, s_addr, data in commands:
         Command.objects.create(
             interface=interface1,
             command=cmd,
+            length=length,
             unit_id=u_id,
             function=fun,
             starting_address=s_addr,

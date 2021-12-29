@@ -6,7 +6,6 @@
     <div class="row" style='overflow:auto'>
         <div class='col-sm' style:'horizontal-align:middle; width:70vw'>
             <form id='form' method='POST'> {% csrf_token %}
-                
                     {% for field in form %}
                         <div class='d-flex justify-content-center'>{{ field.label }}</div>
                         <div class='d-flex justify-content-center'>{{ field }}</div><br>
@@ -24,15 +23,13 @@
                 Status:
             </div><br>
             <div class='d-flex justify-content-center'>
-                Praca:&nbsp
-                <div style='color:green'>Start</div>
-                <div style='color:red'>Stop</div>
+                Praca: <div id='status'>{{ status }}</div>
             </div>
             <div class='d-flex justify-content-center'>
-                Ilość do zrobienia: ilość
+                Ilość do zrobienia: <div id='amount'>{{ amount }}</div>
             </div>
             <div class='d-flex justify-content-center'>
-                Aktualne zlecenie: numer
+                Aktualne zlecenie: <div id='order'>{{ order }}</div>
             </div>
         </div>
     </div><br>
@@ -48,42 +45,7 @@
                     {% endfor %}
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    {% for column in table_fields %}
-                    <th scope='row'>{{ column }}</th>
-                    {% endfor %}
-                </tr>
-                <tr>
-                    {% for column in table_fields %}
-                    <th scope='row'>{{ column }}</th>
-                    {% endfor %}
-                </tr>
-                <tr>
-                    {% for column in table_fields %}
-                    <th scope='row'>{{ column }}</th>
-                    {% endfor %}
-                </tr>
-                <tr>
-                    {% for column in table_fields %}
-                    <th scope='row'>{{ column }}</th>
-                    {% endfor %}
-                </tr>
-                <tr>
-                    {% for column in table_fields %}
-                    <th scope='row'>{{ column }}</th>
-                    {% endfor %}
-                </tr>
-                <tr>
-                    {% for column in table_fields %}
-                    <th scope='row'>{{ column }}</th>
-                    {% endfor %}
-                </tr>
-                <tr>
-                    {% for column in table_fields %}
-                    <th scope='row'>{{ column }}</th>
-                    {% endfor %}
-                </tr>
+            <tbody id='table'>
                 <tr>
                     {% for column in table_fields %}
                     <th scope='row'>{{ column }}</th>
@@ -100,13 +62,25 @@
 
 <script>
 
-// Form data variables
-
+// data variables
 var formData = $('#form')
+var statusHandler = $('#status')
+var amountHandler = $('#amount')
+var orderHandler = $('#order')
 var button
 $('.btn').click(function(){
     button = $(this).val()
 })
+
+var tableHandler = $('#table')
+tableHandler.append(
+    '<tr><th>'+ 'abc' + '</th>' +
+    '<th>'+ 'abc' + '</th>' +
+    '<th>'+ 'abc' + '</th>' +
+    '<th>'+ 'abc' + '</th>' +
+    '<th>'+ 'abc' + '</th>' +
+    '<th>'+ 'abc' + '</th></tr>' 
+)
     
 // websocket scripts
 console.log(window.location)
@@ -123,27 +97,52 @@ function connect(){
     socket = new WebSocket(endpoint)
 }
 
+
 connect()
+
+var intervalId = setInterval(function() {
+
+    var dataArray = formData.serializeArray()
+    dataArray.push({name: 'button', value: 'update'})
+    
+    var data = {}
+    dataArray.forEach(function(element){
+        data[element.name] = element.value
+    })
+    
+    socket.send(JSON.stringify(data))
+  }, 5000)
 
 socket.onmessage = function(e){
     console.log("message", e)
-    console.log(e.data)
+    console.log(JSON.parse(e.data))
+    var data = JSON.parse(e.data)
+    if (data['type'] == 'status') {
+        statusHandler.text(data['status'])
+        if (data['status'] != 'Stop'){
+            orderHandler.text(data['order'])
+            amountHandler.text(data['amount'])
+        }
+    }
+    
 }
 socket.onopen = function(e){
     console.log("open", e)
     formData.submit(function(event){
-        event.preventDefault()
+        if (socket.readyState == WebSocket.OPEN){
+            event.preventDefault()
 
-        var dataArray = formData.serializeArray()
-        dataArray.push({name: 'button', value: button})
-        
-        var data = {}
-        dataArray.forEach(function(element){
-            data[element.name] = element.value
-        })
+            var dataArray = formData.serializeArray()
+            dataArray.push({name: 'button', value: button})
+            
+            var data = {}
+            dataArray.forEach(function(element){
+                data[element.name] = element.value
+            })
 
-        var json = JSON.stringify(data)
-        socket.send(json)
+            var json = JSON.stringify(data)
+            socket.send(json)
+        }
     })
 }
 socket.onerror = function(e){

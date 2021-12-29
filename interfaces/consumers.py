@@ -19,7 +19,7 @@ def compose_response_message(
     return {
                 "type": "websocket.send",
                 "text": json.dumps({
-                    "type": "ststus",
+                    "type": "status",
                     "status": status,
                     "order": order,
                     "amount": amount,
@@ -38,17 +38,13 @@ class PLCInterfaceConsumer(AsyncConsumer):
             "type": "websocket.accept"
         })
 
-        interface = await self.get_interface(self.scope['url_route']['kwargs']['interface_name'])
-        self.plc = PLCController(
-            interface.name,
-            interface.plc_address,
-            interface.plc_port
-        )
-        connected = self.plc.connect()
+        
+
+        connected = await self.connect_to_PLC()
 
         # If PLCController is not connected, close websocket connection
         if not connected:
-            self.disconnect()
+            await self.disconnect_client()
             return
 
         await self.send(compose_response_message("Połączono"))
@@ -59,19 +55,21 @@ class PLCInterfaceConsumer(AsyncConsumer):
         """
         print("received", event)
         data = json.loads(event['text'])
+        data['requested_amount'] = int(data['requested_amount'])
+        data['number'] = int(data['number'])
 
         # Start request
-        if data['button'] == 'Start' and data['amount'] > 0:
+        if data['button'] == 'Start' and data['requested_amount'] > 0:
             order = await self.start_PLC(
                 self.scope['url_route']['kwargs']['interface_name'],
                 data['number'],
-                data['amount']
+                data['requested_amount']
             )
             if not order:
-                self.disconnect()
+                await self.disconnect_client()
             else:
-                self.send(
-                    compose_response_message("Start", order.order_number, order.complete_amount)
+                await self.send(
+                    compose_response_message("Start", order.number, order.completed_amount)
                 )
             return
 
@@ -81,10 +79,10 @@ class PLCInterfaceConsumer(AsyncConsumer):
                 self.scope['url_route']['kwargs']['interface_name']
             )
             if not order:
-                self.disconnect()
+                await self.disconnect_client()
             else:
-                self.send(
-                    compose_response_message("Stop", order.order_number, order.completed_amount)
+                await self.send(
+                    compose_response_message("Stop")
                     )
             return
 
@@ -94,17 +92,15 @@ class PLCInterfaceConsumer(AsyncConsumer):
                 self.scope['url_route']['kwargs']['interface_name']
             )
             if not order:
-                self.disconnect()
+                await self.disconnect_client()
             else:
-                self.send(
+                await self.send(
                     compose_response_message(
                         "Start" if running else "Stop",
                         order.number,
                         order.completed_amount)
                 )
             return
-            
-
 
     async def websocket_disconnect(self, event):
         """
@@ -114,14 +110,26 @@ class PLCInterfaceConsumer(AsyncConsumer):
         if self.plc.connected:
             self.plc.disconnect()
 
-    async def disconnect(self, event):
+    async def disconnect_client(self):
         """
-        Method for processing disconnection.
+        Method for disconnecting client
         """
         await self.send(compose_response_message())
         await self.send({
             "type": "websocket.close",
         })
+
+    async def connect_to_PLC(self):
+        """
+        Method for connecting to PLC
+        """
+        interface = await self.get_interface(self.scope['url_route']['kwargs']['interface_name'])
+        self.plc = PLCController(
+            interface.name,
+            interface.plc_address,
+            interface.plc_port
+        )
+        return self.plc.connect()
 
     @database_sync_to_async
     def get_interface(self, interface_name: str) -> Interface:
@@ -139,7 +147,7 @@ class PLCInterfaceConsumer(AsyncConsumer):
         if not valid:
             return False
 
-        command = Command.objects.get(interface_name, 'write_amount')
+        command = Command.objects.get_command_as_bytes(interface_name, 'write_amount')
         hi_amount = int(requested_amount / 255)
         lo_amount = requested_amount % 255
         command.append(hi_amount)
@@ -165,8 +173,8 @@ class PLCInterfaceConsumer(AsyncConsumer):
         if not success:
             return False
 
-        order = Order.objects.cancel_order(interface_name)
-        return order
+        success = Order.objects.cancel_order(interface_name)
+        return success
 
     @database_sync_to_async
     def fetch_data_from_PLC(self, interface_name:str):

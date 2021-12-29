@@ -7,7 +7,7 @@ from . import forms
 
 
 TABLE_HEADERS = [
-            'Timestamp', 'Protocol id', 'Length',
+            'Protocol id', 'Length',
             'Unit id', 'Function', 'Starting address', 'Data',
         ]
 NO_CONNECTED_PLC_ERROR = 'Brak połączenia z PLC'
@@ -32,6 +32,8 @@ class InterfaceView(TemplateView):
                 'form': form,
                 'table_fields': TABLE_HEADERS,
                 'status': NO_CONNECTED_PLC_ERROR,
+                'order': 0,
+                'amount': 0
             }
         )
 
@@ -43,4 +45,6 @@ class InterfaceView(TemplateView):
         context['form'] = self.form_class()
         context['table_fields'] = TABLE_HEADERS
         context['status'] = NO_CONNECTED_PLC_ERROR
+        context['order'] = 0
+        context['amount'] = 0
         return context
