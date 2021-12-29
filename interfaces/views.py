@@ -10,8 +10,7 @@ TABLE_HEADERS = [
             'Timestamp', 'Protocol id', 'Length',
             'Unit id', 'Function', 'Starting address', 'Data',
         ]
-DEFAULT_STATUS = 'Brak połączenia z PLC'
-NO_CONNECTED_PLC = 'Brak połączenia z PLC'
+NO_CONNECTED_PLC_ERROR = 'Brak połączenia z PLC'
 
 class InterfaceView(TemplateView):
     """Interface view for operator"""
@@ -32,8 +31,7 @@ class InterfaceView(TemplateView):
             {
                 'form': form,
                 'table_fields': TABLE_HEADERS,
-                'status': DEFAULT_STATUS,
-                'error': NO_CONNECTED_PLC,
+                'status': NO_CONNECTED_PLC_ERROR,
             }
         )
 
@@ -44,5 +42,5 @@ class InterfaceView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['form'] = self.form_class()
         context['table_fields'] = TABLE_HEADERS
-        context['status'] = DEFAULT_STATUS
+        context['status'] = NO_CONNECTED_PLC_ERROR
         return context

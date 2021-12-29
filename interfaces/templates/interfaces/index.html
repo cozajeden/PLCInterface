@@ -112,16 +112,22 @@ $('.btn').click(function(){
 console.log(window.location)
 
 var loc = window.location
-
 var wsStart = 'ws://'
 if (loc.protocol == 'https:') {
     wsStart = 'wss://'
 }
 var endpoint = wsStart + loc.host + loc.pathname
-var socket = new WebSocket(endpoint)
+var socket
+
+function connect(){
+    socket = new WebSocket(endpoint)
+}
+
+connect()
 
 socket.onmessage = function(e){
     console.log("message", e)
+    console.log(e.data)
 }
 socket.onopen = function(e){
     console.log("open", e)
@@ -135,10 +141,9 @@ socket.onopen = function(e){
         dataArray.forEach(function(element){
             data[element.name] = element.value
         })
-        
+
         var json = JSON.stringify(data)
         socket.send(json)
-        formData[0].reset()
     })
 }
 socket.onerror = function(e){
