@@ -7,10 +7,9 @@ from . import forms
 
 
 TABLE_HEADERS = [
-            'Timestamp', 'Transaction id', 'Protocol id', 'Length',
+            'Timestamp', 'Protocol id', 'Length',
             'Unit id', 'Function', 'Starting address', 'Data',
         ]
-
 DEFAULT_STATUS = 'Brak połączenia z PLC'
 NO_CONNECTED_PLC = 'Brak połączenia z PLC'
 
