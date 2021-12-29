@@ -99,17 +99,19 @@
 {% block script %}
 
 <script>
-// websocket scripts
 
-console.log(window.location)
-
-var loc = window.location
+// Form data variables
 
 var formData = $('#form')
 var button
 $('.btn').click(function(){
     button = $(this).val()
 })
+    
+// websocket scripts
+console.log(window.location)
+
+var loc = window.location
 
 var wsStart = 'ws://'
 if (loc.protocol == 'https:') {
@@ -122,13 +124,22 @@ socket.onmessage = function(e){
     console.log("message", e)
 }
 socket.onopen = function(e){
-//    console.log("open", e)
-//    formData.submit(function(event){
-//        event.preventDefault()
-//        console.log(button)
-//        socket.send(formData.serialize())
-//        formData[0].reset()
-//    })
+    console.log("open", e)
+    formData.submit(function(event){
+        event.preventDefault()
+
+        var dataArray = formData.serializeArray()
+        dataArray.push({name: 'button', value: button})
+        
+        var data = {}
+        dataArray.forEach(function(element){
+            data[element.name] = element.value
+        })
+        
+        var json = JSON.stringify(data)
+        socket.send(json)
+        formData[0].reset()
+    })
 }
 socket.onerror = function(e){
     console.log("error", e)

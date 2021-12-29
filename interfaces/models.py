@@ -37,6 +37,23 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class CommandManager(models.Manager):
+    """
+    Manager for Command model
+    """
+    def get_command_as_bytes(self, interface: str, command: str) -> bytes:
+        """
+        Get command as bytes
+        """
+        interface = Interface.objects.get(name=interface)
+        command = Command.objects.get(interface=interface, command=command)
+        fields = [
+            'protocol_id', 'length', 'unit_id', 'function', 'starting_address', 'data'
+        ]
+        data = ''.join([command.__getattribute__(field) for field in fields])
+        return bytes.fromhex(data)
+
+
 class Command(models.Model):
     """
     Predefinied command to be sent to the PLC
@@ -49,3 +66,11 @@ class Command(models.Model):
     function = models.CharField(max_length=2)
     starting_address = models.CharField(max_length=4)
     data = models.CharField(max_length=255, null=True, blank=True)
+
+    objects = CommandManager()
+
+    class Meta:
+        unique_together = ('interface', 'command')
+
+    def __str__(self):
+        return self.command
