@@ -40,7 +40,7 @@ class OrderManager(models.Manager):
         Place order in the database
         """
         requested_orders =  super().get_queryset().filter(
-            Q(status__status=Status.objects.get(status='requested')) |
+            Q(status__status=Status.objects.get(status='requested')) &
             Q(interface=Interface.objects.get(name=interface_name))
         )
         for order in requested_orders:
@@ -79,18 +79,24 @@ class OrderManager(models.Manager):
         order.save()
         return True
 
-    def update_order(self, interface_name: str, completed_amount: int):
+    def update_order(self, interface_name: str, number: int, remaining_amount: int):
         """
         Update order in the database
         """
         interface = Interface.objects.get(name=interface_name)
-        order = super().get_queryset().get(
-            interface=interface,
-            status = Status.objects.get(status='requested')
-        )
+        try:
+            order = self.get(
+                interface=interface,
+                number=number
+            )
+        except Order.DoesNotExist:
+            return False
 
-        order.completed_amount = completed_amount
-        if completed_amount >= order.requested_amount:
+        # Update completed amount only if order is not finished
+        if order.requested_amount >= order.completed_amount:
+            order.completed_amount = order.requested_amount - remaining_amount
+
+        if order.completed_amount >= order.requested_amount:
             order.status = Status.objects.get(status='finished')
         order.save()
         return order

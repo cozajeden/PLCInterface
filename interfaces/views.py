@@ -1,4 +1,5 @@
-from select import error
+from typing import Dict, Any
+
 from django.shortcuts import render
 from django.views.generic import TemplateView
 
@@ -7,15 +8,24 @@ from . import forms
 
 
 TABLE_HEADERS = [
-            'Protocol id', 'Length',
-            'Unit id', 'Function', 'Starting address', 'Data',
+            'Type', 'Transaction id', 'Protocol id',
+            'Length', 'Unit id', 'Function', 'Data',
         ]
 NO_CONNECTED_PLC_ERROR = 'Brak połączenia z PLC'
+
+
+class IndexView(TemplateView):
+    template_name = 'interfaces/index.html'
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        interfaces = models.Interface.objects.all()
+        kwargs['interfaces'] = interfaces
+        return super().get_context_data(**kwargs)
 
 class InterfaceView(TemplateView):
     """Interface view for operator"""
 
-    template_name = 'interfaces/index.html'
+    template_name = 'interfaces/interface.html'
     model = models.Order
     form_class = forms.OrderForm
     
@@ -37,7 +47,7 @@ class InterfaceView(TemplateView):
             }
         )
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> Dict[str, Any]:
         """
         Method for processing GET request
         """

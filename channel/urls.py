@@ -20,4 +20,4 @@ from django.urls.conf import include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('interfaces/', include('interfaces.urls')),
-]
+    ]

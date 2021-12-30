@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Optional, Union
+from typing import List, Optional, Union
 from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
 
@@ -14,7 +14,7 @@ def compose_response_message(
     amount: int = 0,
 ) -> dict:
     """
-    Compose response to the client
+    Compose status response to the client
     """
     return {
                 "type": "websocket.send",
@@ -23,6 +23,30 @@ def compose_response_message(
                     "status": status,
                     "order": order,
                     "amount": amount,
+                })
+            }
+
+def compose_update_table_message(
+    mmessages: List[str],
+) -> dict:
+    """
+    Compose table update response to the client
+    """
+    chunk_len = [4, 4, 4, 2, 2]
+    rows = []
+    for pair in mmessages:
+        for type, msg in zip(['sent', 'received'], pair):
+            table_fields = [type]
+            for i in chunk_len:
+                table_fields.append(msg[:i])
+                msg = msg[i:]
+            table_fields.append(msg)
+            rows.append(table_fields)
+    return {
+                "type": "websocket.send",
+                "text": json.dumps({
+                    "type": "update_table",
+                    "table_fields": rows
                 })
             }
 
@@ -38,14 +62,7 @@ class PLCInterfaceConsumer(AsyncConsumer):
             "type": "websocket.accept"
         })
 
-        
-
         connected = await self.connect_to_PLC()
-
-        # If PLCController is not connected, close websocket connection
-        if not connected:
-            await self.disconnect_client()
-            return
 
         await self.send(compose_response_message("Połączono"))
 
@@ -53,53 +70,78 @@ class PLCInterfaceConsumer(AsyncConsumer):
         """
         Method for processing websocket message.
         """
-        print("received", event)
+        # try to reconnect to PLC
+        if not self.plc.connected:
+            await self.connect_to_PLC()
+
         data = json.loads(event['text'])
-        data['requested_amount'] = int(data['requested_amount'])
-        data['number'] = int(data['number'])
+        if data['requested_amount']:
+            data['requested_amount'] = int(data['requested_amount'])
+        else:
+            data['requested_amount'] = 0
+        if data['number']:
+            data['number'] = int(data['number'])
+        else:
+            data['number'] = 0
 
         # Start request
         if data['button'] == 'Start' and data['requested_amount'] > 0:
-            order = await self.start_PLC(
+            order, success, messages = await self.start_PLC(
                 self.scope['url_route']['kwargs']['interface_name'],
                 data['number'],
                 data['requested_amount']
             )
-            if not order:
-                await self.disconnect_client()
+            if not success:
+                await self.send(compose_response_message())
             else:
                 await self.send(
-                    compose_response_message("Start", order.number, order.completed_amount)
+                    compose_response_message(
+                        "Start",
+                        order.number,
+                        order.requested_amount - order.completed_amount
+                        )
                 )
+                await self.send(compose_update_table_message(messages))
             return
 
         # Stop request
         if data['button'] == 'Stop':
-            order = await self.stop_PLC(
+            order, success, messages = await self.stop_PLC(
                 self.scope['url_route']['kwargs']['interface_name']
             )
-            if not order:
-                await self.disconnect_client()
-            else:
-                await self.send(
-                    compose_response_message("Stop")
-                    )
-            return
-
-        # Update request
-        if data['button'] == 'Update':
-            order, running = await self.fetch_data_from_PLC(
-                self.scope['url_route']['kwargs']['interface_name']
-            )
-            if not order:
-                await self.disconnect_client()
+            if not success or not order:
+                await self.send(compose_response_message())
             else:
                 await self.send(
                     compose_response_message(
-                        "Start" if running else "Stop",
+                        "Stop",
                         order.number,
-                        order.completed_amount)
-                )
+                        order.requested_amount - order.completed_amount)
+                    )
+                await self.send(compose_update_table_message(messages))
+            return
+
+        # Update request
+        if data['button'] == 'update':
+            order, status, success, messages = await self.fetch_data_from_PLC(
+                self.scope['url_route']['kwargs']['interface_name']
+            )
+            if not success:
+                await self.send(compose_response_message())
+            else:
+                if order:
+                    await self.send(
+                        compose_response_message(
+                            "Start" if status else "Stop",
+                            order.number,
+                            order.requested_amount - order.completed_amount)
+                    )
+                else:
+                    await self.send(
+                        compose_response_message("Start" if status else "Stop")
+                    )
+                await self.send(compose_update_table_message(messages))
+
             return
 
     async def websocket_disconnect(self, event):
@@ -109,15 +151,6 @@ class PLCInterfaceConsumer(AsyncConsumer):
         print("disconnected", event)
         if self.plc.connected:
             self.plc.disconnect()
-
-    async def disconnect_client(self):
-        """
-        Method for disconnecting client
-        """
-        await self.send(compose_response_message())
-        await self.send({
-            "type": "websocket.close",
-        })
 
     async def connect_to_PLC(self):
         """
@@ -143,55 +176,103 @@ class PLCInterfaceConsumer(AsyncConsumer):
         """
         Place order and start PLC
         """
+        messages = []
+
+        # place order
         order, valid = Order.objects.place_order(interface_name, order_number, requested_amount)
         if not valid:
-            return False
+            return order, False, False
 
+        # Write amount to PLC
         command = Command.objects.get_command_as_bytes(interface_name, 'write_amount')
-        hi_amount = int(requested_amount / 255)
-        lo_amount = requested_amount % 255
+        remains = requested_amount - order.completed_amount
+        hi_amount = int(remains / 255)
+        lo_amount = remains % 255
         command.append(hi_amount)
         command.append(lo_amount)
-        success = self.plc.send(command)
+        success, value, msg, recv = self.plc.send(command)
         if not success:
-            return False
+            return order, False, False
+        messages.append((msg, recv))
 
+        # Write order number to PLC
+        command = Command.objects.get_command_as_bytes(interface_name, 'write_order')
+        hi_number = int((order_number) / 256)
+        lo_number = (order_number) % 256
+        command.append(hi_number)
+        command.append(lo_number)
+        success, value, msg, recv = self.plc.send(command)
+        if not success:
+            return order, False, False
+        messages.append((msg, recv))
+
+        # Start PLC
         command = Command.objects.get_command_as_bytes(interface_name, 'start')
-        success = self.plc.send(command)
+        success, value, msg, recv = self.plc.send(command)
         if not success:
-            return False
+            return order, False, False
+        messages.append((msg, recv))
 
-        return order
+        return order, True, messages
 
     @database_sync_to_async
     def stop_PLC(self, interface_name:str):
         """
         Stop PLC
         """
+        messages = []
         command = Command.objects.get_command_as_bytes(interface_name, 'stop')
-        success = self.plc.send(command)
+        success, value, msg, recv = self.plc.send(command)
         if not success:
-            return False
+            return False, False, False
+        messages.append((msg, recv))
+        
+        # read order number from PLC
+        command = Command.objects.get_command_as_bytes(interface_name, 'read_order')
+        success, order_number, msg, recv = self.plc.send(command)
+        if not success:
+            return False, False, False
+        messages.append((msg, recv))
 
-        success = Order.objects.cancel_order(interface_name)
-        return success
+        # read remaining amount from PLC
+        command = Command.objects.get_command_as_bytes(interface_name, 'read_amount')
+        success, amount, msg, recv = self.plc.send(command)
+        if not success:
+            return False, False, False
+        messages.append((msg, recv))
+        
+        # update order in database
+        order = Order.objects.update_order(interface_name, order_number, amount)
+        return order, True, messages
 
     @database_sync_to_async
     def fetch_data_from_PLC(self, interface_name:str):
         """
         Fetch data from PLC and update order in database
         """
+        messages = []
+
+        # read remaining amount from PLC
         command = Command.objects.get_command_as_bytes(interface_name, 'read_amount')
-        amount = self.plc.send(command)
-        if not amount:
-            return False, False
-        amount = int(amount, 16)
+        success, amount, msg, recv = self.plc.send(command)
+        if not success:
+            return False, False, False, False
+        messages.append((msg, recv))
 
+        # read order number from PLC
+        command = Command.objects.get_command_as_bytes(interface_name, 'read_order')
+        success, order_number, msg, recv = self.plc.send(command)
+        if not success:
+            return False, False, False, False
+        messages.append((msg, recv))
+        
+        # read running status from PLC
         command = Command.objects.get_command_as_bytes(interface_name, 'read_status')
-        running = self.plc.send(command)
-        if not running:
-            return False, False
-        running = bool(int(running, 16))
+        success, status, msg, recv = self.plc.send(command)
+        if not success:
+            return False, False, False, False
+        messages.append((msg, recv))
 
-        order = Order.objects.update_order(interface_name, amount)
-        return order, running
+        # update order in database
+        order = Order.objects.update_order(interface_name, order_number, amount)
+        return order, status, True, messages

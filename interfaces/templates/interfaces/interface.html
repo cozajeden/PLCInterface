@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid" style='color:darkslategray; font-size:36px'>
+    <div class="row" style='overflow:auto'>
+        <div class='col-sm' style:'horizontal-align:middle; width:70vw'>
+            <form id='form' method='POST'> {% csrf_token %}
+                    {% for field in form %}
+                        <div class='d-flex justify-content-center'>{{ field.label }}</div>
+                        <div class='d-flex justify-content-center'>{{ field }}</div><br>
+                    {% endfor %}
+                <div class='d-flex justify-content-center'>
+                    <input value='Start' name='button' type='submit' class='btn btn-success btn-block' style='font-size:32px'>
+                </div>
+                <div class='d-flex justify-content-center'>
+                    <input value='Stop' name='button' type='submit' class='btn btn-danger btn-block' style='font-size:32px'>
+                </div>
+            </form>
+        </div>
+        <div class='col-sm'>
+            <div class='d-flex justify-content-center'>
+                Status:
+            </div><br>
+            <div class='d-flex justify-content-center'>
+                Praca: <div id='status'>{{ status }}</div>
+            </div>
+            <div class='d-flex justify-content-center'>
+                Ilość do zrobienia: <div id='amount'>{{ amount }}</div>
+            </div>
+            <div class='d-flex justify-content-center'>
+                Aktualne zlecenie: <div id='order'>{{ order }}</div>
+            </div>
+        </div>
+    </div><br>
+    <div class='d-flex justify-content-center'>
+        Log ramek:
+    </div>
+    <div class='container-fluid' style='overflow:auto; height:25vh; text-align:center'>
+        <table class='table table-striped table-bordered table-hover table-sm' style='font-size:18px'>
+            <thead style='background:lavender'>
+                <tr>
+                    {% for column in table_fields %}
+                    <th scope='col'>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody id='table'>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+
+// data variables
+var formData = $('#form')
+var statusHandler = $('#status')
+var amountHandler = $('#amount')
+var orderHandler = $('#order')
+var tableHandler = $('#table')
+var button
+$('.btn').click(function(){
+    button = $(this).val()
+})
+
+    
+// websocket scripts
+var loc = window.location
+var wsStart = 'ws://'
+if (loc.protocol == 'https:') {
+    wsStart = 'wss://'
+}
+var endpoint = wsStart + loc.host + loc.pathname
+var socket
+
+function connect(){
+    socket = new WebSocket(endpoint)
+}
+
+
+connect()
+
+// Update routine
+var intervalId = setInterval(function() {
+
+    var dataArray = formData.serializeArray()
+    dataArray.push({name: 'button', value: 'update'})
+    
+    var data = {}
+    dataArray.forEach(function(element){
+        data[element.name] = element.value
+    })
+    
+    socket.send(JSON.stringify(data))
+  }, 2000)
+
+socket.onmessage = function(e){
+    console.log("message", e)
+    var data = JSON.parse(e.data)
+    if (data['type'] == 'status') {
+        statusHandler.text(data['status'])
+        orderHandler.text(data['order'])
+        amountHandler.text(data['amount'])
+    }
+    if (data['type'] == 'update_table') {
+        data['table_fields'].forEach(function(row){
+            tableHandler.append("<tr>")
+            row.forEach(function(field){
+                tableHandler.append("<th>" + field + "</th>")
+                tableHandler.append("</tr>")
+            })
+        })
+    }    
+}
+socket.onopen = function(e){
+    console.log("open", e)
+    // Button click
+    formData.submit(function(event){
+        if (socket.readyState == WebSocket.OPEN){
+            event.preventDefault()
+
+            var dataArray = formData.serializeArray()
+            dataArray.push({name: 'button', value: button})
+            
+            var data = {}
+            dataArray.forEach(function(element){
+                data[element.name] = element.value
+            })
+
+            var json = JSON.stringify(data)
+            socket.send(json)
+        }
+    })
+}
+socket.onerror = function(e){
+    console.log("error", e)
+}
+socket.onclose = function(e){
+    console.log("close", e)
+}
+
+</script>
+{% endblock %}

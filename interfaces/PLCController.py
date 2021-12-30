@@ -1,5 +1,6 @@
 import socket
 from itertools import cycle
+from typing import Tuple, Union
 
 class PLCController:
     def __init__(self, interface_name: str, plc_address: str, plc_port: int):
@@ -28,32 +29,40 @@ class PLCController:
         self.connection.close()
         self.connected = False
 
-    def send(self, command: bytes):
+    def send(self, command: bytes) -> Tuple[bool, int, bytes, Union[bytes, None]]:
         transaction_id = next(self.cyclic_transaction_id)
         msg = bytearray.fromhex(transaction_id) + command
         mobus_function = msg[7]
 
-        print(msg.hex())
-        self.connection.send(msg)
-        recv = self.connection.recv(1024)
-        print(recv.hex())
+        success = True
+        value = 0
+        recv = None
+        
+        try:
+            self.connection.send(msg)
+            recv = self.connection.recv(1024)
+            if recv.hex()[:4] != transaction_id or recv[7] != mobus_function:
+                success = False
+            if mobus_function == 1: # read coils
+                value = recv[-1]
+            if mobus_function == 3: # read holding registers
+                value = recv[-2] * 256 + recv[-1]
+        except (socket.error, IndexError):
+            try:
+                self.disconnect()
+            except socket.error:
+                self.connected = False
+            success = False
+        
+        msg = msg.hex()
+        if recv is not None:
+            recv = recv.hex()
+        return success, value, msg, recv
 
-        if recv.hex()[:4] != transaction_id or recv[7] != mobus_function:
-            return False
-        if mobus_function == 1: # read coils
-            pass
-        if mobus_function == 3: # read holding registers
-            pass
-        if mobus_function == 5: # write coils
-            if msg != recv:
-                return False
-        if mobus_function == 10: # write holding registers
-            if not recv[8:12] != msg[8:12]:
-                return False
-        return True
+
 
 if __name__ == '__main__':
     plc = PLCController('test', '127.0.1.101', 1024)
     plc.connect()
-    ret = plc.send(bytearray.fromhex('00000006010500100000'))
+    ret = plc.send(bytearray.fromhex('00000006010100100001'))
     print(ret)
