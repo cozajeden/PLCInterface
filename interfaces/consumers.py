@@ -1,10 +1,10 @@
 import asyncio
 import json
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Union
 from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
 
-from .models import Command, Order, Interface, Status
+from .models import Order, Interface
 from .views import NO_CONNECTED_PLC_ERROR
 from .PLCController import PLCController
 
