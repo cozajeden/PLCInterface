@@ -16,7 +16,7 @@ def create_initial_command_list(apps, schema_editor):
     Command = apps.get_model('interfaces', 'Command')
     Interface = apps.get_model('interfaces', 'Interface')
     interface1 = Interface.objects.get(name='interface1')
-    for cmd, u_id, length, fun, s_addr, data in commands:
+    for cmd, length, u_id, fun, s_addr, data in commands:
         Command.objects.create(
             interface=interface1,
             command=cmd,

@@ -60,25 +60,6 @@ class OrderManager(models.Manager):
             return order, False
         return order, True
 
-    def cancel_order(self, interface_name: str):
-        """
-        Cancel order in the database
-        """
-        interface = Interface.objects.get(name=interface_name)
-        try:
-            order = super().get_queryset().get(
-                interface=interface,
-                status = Status.objects.get(status='requested')
-            )
-        except Order.DoesNotExist:
-            return True
-        if order.completed_amount >= order.requested_amount:
-            order.status = Status.objects.get(status='finished')
-        else:
-            order.status = Status.objects.get(status='stopped')
-        order.save()
-        return True
-
     def update_order(self, interface_name: str, number: int, remaining_amount: int):
         """
         Update order in the database
