@@ -20,7 +20,7 @@ class PLCControllerTest(TestCase):
     def tearDown(self):
         self.dummmy_plc_stop_event.set()
         self.plc.disconnect()
-        time.sleep(1)
+        time.sleep(2)
 
     def test_can_send_read_order_command(self):
         command = bytearray.fromhex('00000006010300ff0001')

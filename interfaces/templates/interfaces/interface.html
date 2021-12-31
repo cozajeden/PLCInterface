@@ -117,6 +117,7 @@ socket.onmessage = function(e){
         })
     }    
 }
+
 socket.onopen = function(e){
     console.log("open", e)
     // Button click
@@ -133,6 +134,7 @@ socket.onopen = function(e){
             })
 
             var json = JSON.stringify(data)
+            console.log("sending", json)
             socket.send(json)
         }
     })
