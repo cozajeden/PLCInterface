@@ -1,6 +1,7 @@
 import socket
 from itertools import cycle
 from typing import Tuple, Union
+from .models import Command
 
 class PLCController:
     def __init__(self, interface_name: str, plc_address: str, plc_port: int):
@@ -58,6 +59,59 @@ class PLCController:
         if recv is not None:
             recv = recv.hex()
         return success, value, msg, recv
+
+    def write_amount_to_PLC(self, interface_name:str, amount: int) -> None:
+        """
+        Write amount to PLC
+        """
+        command = Command.objects.get_command_as_bytes(interface_name, 'write_amount')
+        hi_amount = int(amount / 256)
+        lo_amount = amount % 256
+        command.append(hi_amount)
+        command.append(lo_amount)
+        return self.send(command)
+
+    def write_order_to_PLC(self, interface_name:str, order: int) -> None:
+        """
+        Write order to PLC
+        """
+        command = Command.objects.get_command_as_bytes(interface_name, 'write_order')
+        hi_order = int(order / 256)
+        lo_order = order % 256
+        command.append(hi_order)
+        command.append(lo_order)
+        return self.send(command)
+
+    def write_status_to_PLC(self, interface_name:str, status: bool) -> None:
+        """
+        Write status to PLC
+        """
+        if status:
+            command = Command.objects.get_command_as_bytes(interface_name, 'start')
+        else:
+            command = Command.objects.get_command_as_bytes(interface_name, 'stop')
+        return self.send(command)
+
+    def read_order_from_PLC(self, interface_name:str) -> int:
+        """
+        Read order from PLC
+        """
+        command = Command.objects.get_command_as_bytes(interface_name, 'read_order')
+        return self.send(command)
+
+    def read_amount_from_PLC(self, interface_name:str) -> int:
+        """
+        Read amount from PLC
+        """
+        command = Command.objects.get_command_as_bytes(interface_name, 'read_amount')
+        return self.send(command)
+
+    def read_status_from_PLC(self, interface_name:str) -> bool:
+        """
+        Read status from PLC
+        """
+        command = Command.objects.get_command_as_bytes(interface_name, 'read_status')
+        return self.send(command)
 
 
 

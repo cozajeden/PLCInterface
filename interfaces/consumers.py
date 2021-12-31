@@ -188,59 +188,6 @@ class PLCInterfaceConsumer(AsyncConsumer):
         """
         return Interface.objects.get(name=interface_name)
 
-    def write_amount_to_PLC(self, interface_name:str, amount: int) -> None:
-        """
-        Write amount to PLC
-        """
-        command = Command.objects.get_command_as_bytes(interface_name, 'write_amount')
-        hi_amount = int(amount / 256)
-        lo_amount = amount % 256
-        command.append(hi_amount)
-        command.append(lo_amount)
-        return self.plc.send(command)
-
-    def write_order_to_PLC(self, interface_name:str, order: int) -> None:
-        """
-        Write order to PLC
-        """
-        command = Command.objects.get_command_as_bytes(interface_name, 'write_order')
-        hi_order = int(order / 256)
-        lo_order = order % 256
-        command.append(hi_order)
-        command.append(lo_order)
-        return self.plc.send(command)
-
-    def write_status_to_PLC(self, interface_name:str, status: bool) -> None:
-        """
-        Write status to PLC
-        """
-        if status:
-            command = Command.objects.get_command_as_bytes(interface_name, 'start')
-        else:
-            command = Command.objects.get_command_as_bytes(interface_name, 'stop')
-        return self.plc.send(command)
-
-    def read_order_from_PLC(self, interface_name:str) -> int:
-        """
-        Read order from PLC
-        """
-        command = Command.objects.get_command_as_bytes(interface_name, 'read_order')
-        return self.plc.send(command)
-
-    def read_amount_from_PLC(self, interface_name:str) -> int:
-        """
-        Read amount from PLC
-        """
-        command = Command.objects.get_command_as_bytes(interface_name, 'read_amount')
-        return self.plc.send(command)
-
-    def read_status_from_PLC(self, interface_name:str) -> bool:
-        """
-        Read status from PLC
-        """
-        command = Command.objects.get_command_as_bytes(interface_name, 'read_status')
-        return self.plc.send(command)
-
     @database_sync_to_async
     def start_PLC(
         self, interface_name:str, order_number:int, requested_amount:int
@@ -257,19 +204,19 @@ class PLCInterfaceConsumer(AsyncConsumer):
 
         # Write remaining amount to PLC
         remains = requested_amount - order.completed_amount
-        success, value, msg, recv = self.write_amount_to_PLC(interface_name, remains)
+        success, value, msg, recv = self.plc.write_amount_to_PLC(interface_name, remains)
         if not success:
             return order, False, False
         messages.append((msg, recv))
 
         # Write order number to PLC
-        success, value, msg, recv = self.write_order_to_PLC(interface_name, order_number)
+        success, value, msg, recv = self.plc.write_order_to_PLC(interface_name, order_number)
         if not success:
             return order, False, False
         messages.append((msg, recv))
 
         # Start PLC
-        success, value, msg, recv = self.write_status_to_PLC(interface_name, True)
+        success, value, msg, recv = self.plc.write_status_to_PLC(interface_name, True)
         if not success:
             return order, False, False
         messages.append((msg, recv))
@@ -286,19 +233,19 @@ class PLCInterfaceConsumer(AsyncConsumer):
         messages = []
 
         # Stop PLC
-        success, value, msg, recv = self.write_status_to_PLC(interface_name, False)
+        success, value, msg, recv = self.plc.write_status_to_PLC(interface_name, False)
         if not success:
             return False, False, False
         messages.append((msg, recv))
         
         # read order number from PLC
-        success, order_number, msg, recv = self.read_order_from_PLC(interface_name)
+        success, order_number, msg, recv = self.plc.read_order_from_PLC(interface_name)
         if not success:
             return False, False, False
         messages.append((msg, recv))
 
         # read remaining amount from PLC
-        success, amount, msg, recv = self.read_amount_from_PLC(interface_name)
+        success, amount, msg, recv = self.plc.read_amount_from_PLC(interface_name)
         if not success:
             return False, False, False
         messages.append((msg, recv))
@@ -317,20 +264,19 @@ class PLCInterfaceConsumer(AsyncConsumer):
         messages = []
 
         # read remaining amount from PLC
-        success, amount, msg, recv = self.read_amount_from_PLC(interface_name)
+        success, amount, msg, recv = self.plc.read_amount_from_PLC(interface_name)
         if not success:
             return False, False, False, False
         messages.append((msg, recv))
 
         # read order number from PLC
-        success, order_number, msg, recv = self.read_order_from_PLC(interface_name)
+        success, order_number, msg, recv = self.plc.read_order_from_PLC(interface_name)
         if not success:
             return False, False, False, False
         messages.append((msg, recv))
         
         # read running status from PLC
-        command = Command.objects.get_command_as_bytes(interface_name, 'read_status')
-        success, status, msg, recv = self.plc.send(command)
+        success, status, msg, recv = self.plc.read_status_from_PLC(interface_name)
         if not success:
             return False, False, False, False
         messages.append((msg, recv))
