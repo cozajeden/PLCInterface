@@ -63,8 +63,10 @@ class PLCInterfaceConsumer(AsyncConsumer):
         })
 
         connected = await self.connect_to_PLC()
-
-        await self.send(compose_response_message("Połączono"))
+        if not connected:
+            await self.send(compose_response_message())
+        else:
+            await self.send(compose_response_message("Połączono"))
 
     async def websocket_receive(self, event):
         """
@@ -123,7 +125,6 @@ class PLCInterfaceConsumer(AsyncConsumer):
             data['number'],
             data['requested_amount']
         )
-
         if not success:
             await self.send(compose_response_message())
         else:

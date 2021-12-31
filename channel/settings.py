@@ -28,9 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
-# Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -79,8 +76,12 @@ ASGI_APPLICATION = "channel.asgi.application"
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'apator',
+        'USER': 'apator',
+        'PASSWORD': 'Przegralemwgre1234.',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
