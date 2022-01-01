@@ -1,7 +1,7 @@
 from typing import Dict, Any
 
 from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, ListView
 
 from . import models
 from . import forms
@@ -14,13 +14,9 @@ TABLE_HEADERS = [
 NO_CONNECTED_PLC_ERROR = 'Brak połączenia z PLC'
 
 
-class IndexView(TemplateView):
+class IndexView(ListView):
     template_name = 'interfaces/index.html'
-
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        interfaces = models.Interface.objects.all()
-        kwargs['interfaces'] = interfaces
-        return super().get_context_data(**kwargs)
+    model = models.Interface
 
 class InterfaceView(TemplateView):
     """Interface view for operator"""

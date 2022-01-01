@@ -2,11 +2,9 @@
 
 {% block content %}
 
-<h1>Interfaces</h1>
-{% for interface in interfaces %}
-
-<p><a href="{% url 'interface' interface.name %}">Otwórz panel: {{ interface.name }}</a></p>
-{% endfor %}
-
+    <h1>Lista paneli operatorskich</h1></br>
+    {% for interface in interface_list %}
+        <p><a style='color:#8A1175; font-size:28px' href="{% url 'interface' interface.name %}">Otwórz panel: {{ interface.name }}</a></p>
+    {% endfor %}
 
 {% endblock %}

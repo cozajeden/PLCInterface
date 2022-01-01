@@ -86,34 +86,37 @@ class PLCInterfaceConsumer(AsyncConsumer):
             data['number'] = int(data['number'])
         else:
             data['number'] = 0
+        interface_name = self.scope['url_route']['kwargs']['interface_name']
 
         # process client request
         if data['button'] == 'Start':
-            await self.process_start_request(data)
+            await self.process_start_request(interface_name, data)
         elif data['button'] == 'Stop':
-            await self.process_stop_request()
+            await self.process_stop_request(interface_name)
         elif data['button'] == 'update':
-            await self.process_update_request()
+            await self.process_update_request(interface_name)
 
-    async def process_stop_request(self) -> None:
+    async def process_stop_request(self, interface_name:str) -> None:
         """
         Method for processing stop request.
         """
         order, success, messages = await self.stop_PLC(
-            self.scope['url_route']['kwargs']['interface_name']
+            interface_name
         )
+
         if not success or not order:
             await self.send(compose_response_message())
-        else:
-            await self.send(
-                compose_response_message(
-                    "Stop",
-                    order.number,
-                    order.requested_amount - order.completed_amount)
-                )
-            await self.send(compose_update_table_message(messages))
+            return
+            
+        await self.send(
+            compose_response_message(
+                "Stop",
+                order.number,
+                order.requested_amount - order.completed_amount)
+            )
+        await self.send(compose_update_table_message(messages))
 
-    async def process_start_request(self, data:dict) -> None:
+    async def process_start_request(self, interface_name:str, data:dict) -> None:
         """
         Method for processing start request.
         """
@@ -121,45 +124,48 @@ class PLCInterfaceConsumer(AsyncConsumer):
             return
 
         order, success, messages = await self.start_PLC(
-            self.scope['url_route']['kwargs']['interface_name'],
+            interface_name,
             data['number'],
             data['requested_amount']
         )
+
         if not success:
             await self.send(compose_response_message())
-        else:
-            await self.send(
-                compose_response_message(
-                    "Start",
-                    order.number,
-                    order.requested_amount - order.completed_amount
-                    )
-            )
-            await self.send(compose_update_table_message(messages))
+            return
+            
+        await self.send(
+            compose_response_message(
+                "Start",
+                order.number,
+                order.requested_amount - order.completed_amount
+                )
+        )
+        await self.send(compose_update_table_message(messages))
 
-    async def process_update_request(self) -> None:
+    async def process_update_request(self, interface_name:str) -> None:
         """
         Method for processing update request.
         """
         order, status, success, messages = await self.fetch_data_from_PLC(
-            self.scope['url_route']['kwargs']['interface_name']
+            interface_name
         )
 
         if not success:
             await self.send(compose_response_message())
+            return
+            
+        if order:
+            await self.send(
+                compose_response_message(
+                    "Start" if status else "Stop",
+                    order.number,
+                    order.requested_amount - order.completed_amount)
+            )
         else:
-            if order:
-                await self.send(
-                    compose_response_message(
-                        "Start" if status else "Stop",
-                        order.number,
-                        order.requested_amount - order.completed_amount)
-                )
-            else:
-                await self.send(
-                    compose_response_message("Start" if status else "Stop")
-                )
-            await self.send(compose_update_table_message(messages))
+            await self.send(
+                compose_response_message("Start" if status else "Stop")
+            )
+        await self.send(compose_update_table_message(messages))
 
 
     async def websocket_disconnect(self, event) -> None:
