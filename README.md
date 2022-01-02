@@ -4,7 +4,9 @@
 
 <a name="test"></a>
 ## 1. Testowanie i Prezentacja
-Ze względu na użycie biblioteki `channels` testy nie działają dla SQLite3.
+Testy nie działają pod bazami danych "in-memory".
+
+Testowano pod ChromeDriver 96.0.4664.45
 
 W celach prezentacji nakezy użyć `dummyPLC.py`. Który symuluje server PLC ModbusTCP.
 
