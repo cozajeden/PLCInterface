@@ -1,0 +1,5 @@
+asyncio==3.4.3
+channels==3.0.4
+pyModbusTCP==0.1.10
+threaded==4.1.0
+mysqlclient==2.1.0
