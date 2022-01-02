@@ -13,6 +13,9 @@ import dummyPLC
 
 class MessagesComposeTestCase(TestCase):
     def test_can_compose_default_response_message(self):
+        """
+        Test if compose_response_message can compose default message
+        """
         message = compose_response_message()
         self.assertEqual(message, {
             "type": "websocket.send",
@@ -25,6 +28,9 @@ class MessagesComposeTestCase(TestCase):
         })
 
     def test_can_compose_response_message(self):
+        """
+        Test if compose_response_message can compose message
+        """
         message = compose_response_message('test', 5, 8)
         self.assertEqual(message, {
             "type": "websocket.send",
@@ -37,6 +43,9 @@ class MessagesComposeTestCase(TestCase):
         })
 
     def test_can_compose_update_table_message(self):
+        """
+        Test if compose_update_table_message can compose message
+        """
         message = compose_update_table_message(
             [('0000000601050010ff00', '0000000601050010ff00')]
         )
@@ -65,6 +74,9 @@ class PLCInterfaceConsumerPLCDisonnectedTestCase(TestCase):
         return communicator
 
     async def test_can_connect(self):
+        """
+        Test if PLCInterfaceConsumer can connect to PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 
@@ -73,6 +85,9 @@ class PLCInterfaceConsumerPLCDisonnectedTestCase(TestCase):
         await communicator.disconnect()
 
     async def test_can_receive_message(self):
+        """
+        Test if PLCInterfaceConsumer can receive message from PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 
@@ -86,6 +101,9 @@ class PLCInterfaceConsumerPLCDisonnectedTestCase(TestCase):
         await communicator.disconnect()
 
     async def test_can_return_messages_after_update_request(self):
+        """
+        Test if PLCInterfaceConsumer can receive message from PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 
@@ -107,6 +125,9 @@ class PLCInterfaceConsumerPLCDisonnectedTestCase(TestCase):
         await communicator.disconnect()
 
     async def test_can_return_messages_after_start_request(self):
+        """
+        Test if PLCInterfaceConsumer can receive message from PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 
@@ -128,6 +149,9 @@ class PLCInterfaceConsumerPLCDisonnectedTestCase(TestCase):
         await communicator.disconnect()
 
     async def test_can_return_messages_after_stop_request(self):
+        """
+        Test if PLCInterfaceConsumer can receive message from PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 
@@ -159,7 +183,6 @@ class PLCInterfaceConsumerPLCConnectedTestCase(TestCase):
     Test cases for PLCInterfaceConsumer when PLC is connected
     """
     def get_communicator(self, interface_path='interfaces/interface1/') -> WebsocketCommunicator:
-
         app = URLRouter([
             path('interfaces/<str:interface_name>/', PLCInterfaceConsumer()),
         ])
@@ -184,6 +207,9 @@ class PLCInterfaceConsumerPLCConnectedTestCase(TestCase):
         time.sleep(2)
 
     async def test_can_connect(self):
+        """
+        Test if PLCInterfaceConsumer can connect to PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 
@@ -192,6 +218,9 @@ class PLCInterfaceConsumerPLCConnectedTestCase(TestCase):
         await communicator.disconnect()
 
     async def test_can_receive_message(self):
+        """
+        Test if PLCInterfaceConsumer can receive message from PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 
@@ -205,6 +234,9 @@ class PLCInterfaceConsumerPLCConnectedTestCase(TestCase):
         await communicator.disconnect()
 
     async def test_can_return_messages_after_update_request(self):
+        """
+        Test if PLCInterfaceConsumer can receive message from PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 
@@ -230,6 +262,9 @@ class PLCInterfaceConsumerPLCConnectedTestCase(TestCase):
         await communicator.disconnect()
 
     async def test_can_return_messages_after_start_request(self):
+        """
+        Test if PLCInterfaceConsumer can receive message from PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 
@@ -257,6 +292,9 @@ class PLCInterfaceConsumerPLCConnectedTestCase(TestCase):
         await communicator.disconnect()
 
     async def test_can_return_messages_after_stop_request(self):
+        """
+        Test if PLCInterfaceConsumer can receive message from PLC
+        """
         communicator = self.get_communicator()
         connected, subprotocol = await communicator.connect()
 

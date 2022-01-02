@@ -57,7 +57,6 @@ class PLCInterfaceConsumer(AsyncConsumer):
         Method for processing websocket connection,
         and initializing PLC connection.
         """
-        print("connected", event)
         await self.send({
             "type": "websocket.accept"
         })
@@ -172,7 +171,6 @@ class PLCInterfaceConsumer(AsyncConsumer):
         """
         Method for processing websocket disconnection.
         """
-        print("disconnected", event)
         if self.plc.connected:
             self.plc.disconnect()
 

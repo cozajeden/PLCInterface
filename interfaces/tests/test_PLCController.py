@@ -23,24 +23,36 @@ class PLCControllerTestCase(TestCase):
         time.sleep(2)
 
     def test_can_send_read_order_command(self):
+        """
+        Test for checking if view has start button
+        """
         success, order_number, msg, recv = self.plc.read_order_from_PLC('interface1')
         self.assertTrue(success)
         self.assertEqual(order_number, 0)
         self.assertEqual(recv, '0001000000050103020000')
 
     def test_can_send_read_amount_command(self):
+        """
+        Test for checking if view has start button
+        """
         success, amount, msg, recv = self.plc.read_amount_from_PLC('interface1')
         self.assertTrue(success)
         self.assertEqual(amount, 0)
         self.assertEqual(recv, '0001000000050103020000')
 
     def test_can_send_read_status_command(self):
+        """
+        Test for checking if view has start button
+        """
         success, status, msg, recv = self.plc.read_status_from_PLC('interface1')
         self.assertTrue(success)
         self.assertEqual(status, 0)
         self.assertEqual(recv, '00010000000401010100')
 
     def test_can_send_write_read_amount_command(self):
+        """
+        Test for checking if view has start button
+        """
         success, value, msg, recv = self.plc.write_amount_to_PLC('interface1', 25)
         self.assertTrue(success)
         self.assertEqual(recv, '000100000006011000000001')
@@ -51,6 +63,9 @@ class PLCControllerTestCase(TestCase):
         self.assertEqual(recv, '0002000000050103020019')
 
     def test_can_send_write_read_order_command(self):
+        """
+        Test for checking if view has start button
+        """
         success, value, msg, recv = self.plc.write_order_to_PLC('interface1',24)
         self.assertTrue(success)
         self.assertEqual(recv, '000100000006011000ff0001')
@@ -61,6 +76,9 @@ class PLCControllerTestCase(TestCase):
         self.assertEqual(recv, '0002000000050103020018')
 
     def test_can_send_start_stop_command(self):
+        """
+        Test for checking if view has start button
+        """
         success, value, msg, recv = self.plc.write_status_to_PLC('interface1', True)
         self.assertTrue(success)
         self.assertEqual(recv, '00010000000601050010ff00')

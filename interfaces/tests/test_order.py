@@ -3,6 +3,9 @@ from interfaces.models import Order, Status
 
 class OrderTest(TestCase):
     def test_can_place_order(self) -> None:
+        """
+        Test if order is placed correctly
+        """
         order, success = Order.objects.place_order(
             interface_name='interface1',
             order_number=1,
@@ -15,6 +18,9 @@ class OrderTest(TestCase):
         self.assertEqual(order.number, 1)
 
     def test_can_update_completed_amount(self) -> None:
+        """
+        Test if completed_amount is updated correctly
+        """
         Order.objects.place_order(
             interface_name='interface1',
             order_number=2,
@@ -26,6 +32,9 @@ class OrderTest(TestCase):
         self.assertEqual(order.status, Status.objects.get(status='requested'))
 
     def test_can_update_status_to_finished(self) -> None:
+        """
+        Test if status is updated correctly
+        """
         Order.objects.place_order(
             interface_name='interface1',
             order_number=3,
@@ -36,6 +45,9 @@ class OrderTest(TestCase):
         self.assertEqual(order.status, Status.objects.get(status='finished'))
 
     def test_new_order_sets_other_orders_status_to_stopped(self) -> None:
+        """
+        Test if status of other orders is updated correctly
+        """
         Order.objects.place_order(
             interface_name='interface1',
             order_number=4,

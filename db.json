@@ -1,0 +1,130 @@
+[
+{
+    "model": "interfaces.interface",
+    "pk": 1,
+    "fields": {
+        "name": "interface1",
+        "plc_address": "127.0.1.101",
+        "plc_port": 1024
+    }
+},
+{
+    "model": "interfaces.command",
+    "pk": 1,
+    "fields": {
+        "interface": 1,
+        "command": "read_amount",
+        "protocol_id": "0000",
+        "length": "0006",
+        "unit_id": "01",
+        "function": "03",
+        "starting_address": "0000",
+        "data": "0001"
+    }
+},
+{
+    "model": "interfaces.command",
+    "pk": 2,
+    "fields": {
+        "interface": 1,
+        "command": "write_amount",
+        "protocol_id": "0000",
+        "length": "0009",
+        "unit_id": "01",
+        "function": "10",
+        "starting_address": "0000",
+        "data": "000102"
+    }
+},
+{
+    "model": "interfaces.command",
+    "pk": 3,
+    "fields": {
+        "interface": 1,
+        "command": "read_order",
+        "protocol_id": "0000",
+        "length": "0006",
+        "unit_id": "01",
+        "function": "03",
+        "starting_address": "00FF",
+        "data": "0001"
+    }
+},
+{
+    "model": "interfaces.command",
+    "pk": 4,
+    "fields": {
+        "interface": 1,
+        "command": "write_order",
+        "protocol_id": "0000",
+        "length": "0009",
+        "unit_id": "01",
+        "function": "10",
+        "starting_address": "00FF",
+        "data": "000102"
+    }
+},
+{
+    "model": "interfaces.command",
+    "pk": 5,
+    "fields": {
+        "interface": 1,
+        "command": "read_status",
+        "protocol_id": "0000",
+        "length": "0006",
+        "unit_id": "01",
+        "function": "01",
+        "starting_address": "0010",
+        "data": "0001"
+    }
+},
+{
+    "model": "interfaces.command",
+    "pk": 6,
+    "fields": {
+        "interface": 1,
+        "command": "start",
+        "protocol_id": "0000",
+        "length": "0006",
+        "unit_id": "01",
+        "function": "05",
+        "starting_address": "0010",
+        "data": "FF00"
+    }
+},
+{
+    "model": "interfaces.command",
+    "pk": 7,
+    "fields": {
+        "interface": 1,
+        "command": "stop",
+        "protocol_id": "0000",
+        "length": "0006",
+        "unit_id": "01",
+        "function": "05",
+        "starting_address": "0010",
+        "data": "0000"
+    }
+},
+{
+    "model": "interfaces.status",
+    "pk": 1,
+    "fields": {
+        "status": "requested"
+    }
+},
+{
+    "model": "interfaces.status",
+    "pk": 2,
+    "fields": {
+        "status": "finished"
+    }
+},
+{
+    "model": "interfaces.status",
+    "pk": 3,
+    "fields": {
+        "status": "stopped"
+    }
+}
+]

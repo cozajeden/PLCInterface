@@ -4,7 +4,7 @@
 
     <h1>Lista paneli operatorskich</h1></br>
     {% for interface in interface_list %}
-        <p><a style='color:#8A1175; font-size:28px' href="{% url 'interface' interface.name %}">Otwórz panel: {{ interface.name }}</a></p>
+        <p><a id='{{ interface.name }}' style='color:#8A1175; font-size:28px' href="{% url 'interface' interface.name %}">Otwórz panel: {{ interface.name }}</a></p>
     {% endfor %}
 
 {% endblock %}
