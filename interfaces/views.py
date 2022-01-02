@@ -22,7 +22,6 @@ class InterfaceView(TemplateView):
     """Interface view for operator"""
 
     template_name = 'interfaces/interface.html'
-    model = models.Order
     form_class = forms.OrderForm
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
