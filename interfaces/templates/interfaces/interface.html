@@ -97,7 +97,7 @@ var intervalId = setInterval(function() {
     })
     
     socket.send(JSON.stringify(data))
-  }, 2000)
+  }, 500)
 
 socket.onmessage = function(e){
     console.log("message", e)
