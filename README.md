@@ -13,7 +13,7 @@ W celach prezentacji nakezy użyć `dummyPLC.py`. Który symuluje server PLC Mod
 
 ![Model danych](readme_images/scheme.png)
 
-<a name="model"></a>
+<a name="schemat"></a>
 ## 3. Schemat dizałania aplikacji
 
 ### Otwarcie panelu
