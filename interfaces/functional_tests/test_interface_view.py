@@ -5,7 +5,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
-from interfaces.PLCController import PLCController
 import time
 import threading
 import dummyPLC
@@ -160,8 +159,8 @@ class IndexViewTest(ChannelsLiveServerTestCase):
         """
         Test for checking if view shows no connection status when PLC is not connected
         """
-        self.dummmy_plc_stop_event.set()
         self.browser.get(self.interface_url)
+        self.dummmy_plc_stop_event.set()
         self.browser.find_element_by_id('button_stop').click()
         try:
             self.wait.until(EC.text_to_be_present_in_element((By.ID, 'status'), 'Brak połączenia z PLC'))
@@ -170,7 +169,7 @@ class IndexViewTest(ChannelsLiveServerTestCase):
 
     def test_reamining_amount_is_updating_during_production(self):
         """
-        Test for checking if view shows reamining amount during production
+        Test for checking if view shows remaining amount during production
         """
         self.browser.get(self.interface_url)
         self.browser.find_element_by_id('id_number').send_keys('1')
@@ -178,10 +177,9 @@ class IndexViewTest(ChannelsLiveServerTestCase):
         self.browser.find_element_by_id('button_start').click()
         self.wait.until(EC.text_to_be_present_in_element((By.ID, 'status'), 'Start'))
         try:
-            self.wait.until(EC.text_to_be_present_in_element((By.ID, 'amount'), '190'))
+            self.wait.until(EC.text_to_be_present_in_element((By.ID, 'amount'), '198'))
         except TimeoutException:
-            print(self.browser.find_element_by_id('amount').text)
-            self.fail('Does not show reamining amount during production')
+            self.fail('Does not show remaining amount during production')
 
     def test_table_is_showing_frames(self):
         """

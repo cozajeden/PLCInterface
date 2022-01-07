@@ -4,7 +4,7 @@
 
 <div class="container-fluid" style='color:darkslategray; font-size:36px'>
     <div class="row" style='overflow:auto'>
-        <div class='col-sm' style:'horizontal-align:middle; width:70vw'>
+        <div class='col-sm' style='horizontal-align:middle; width:70vw'>
             <form id='form' method='POST' novalidate> {% csrf_token %}
                     {% for field in form %}
                         <div class='d-flex justify-content-center'>{{ field.label }}</div>
